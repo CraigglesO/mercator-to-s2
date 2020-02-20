@@ -8,13 +8,14 @@ import type { Face } from 's2projection'
 const LAT_BOUND = 85.05
 
 export type Options = {
-  inputZoom: number,
-  inputFolder: string,
-  outputZoom: number,
-  outputFolder: string,
-  tileSize: number,
-  tmsStyle: boolean,
-  srs: 'WGS84' | '900913'
+  inputZoom?: number,
+  inputFolder?: string,
+  outputZoom?: number,
+  outputFolder?: string,
+  tileSize?: number,
+  tmsStyle?: boolean,
+  srs?: 'WGS84' | '900913',
+  defaultColor?: [number, number, number, number]
 }
 
 export type S2Tile = {
@@ -54,6 +55,7 @@ export default class ToS2 {
   merc: SphericalMercator
   inputImages: Images = {}
   outPNG: OutPNG
+  defaultColor: [number, number, number, number] = [9, 8, 17, 255]
   constructor (options?: Options = {}) {
     // pull in options
     if (options.inputZoom) this.inputZoom = options.inputZoom
@@ -63,6 +65,7 @@ export default class ToS2 {
     if (options.tileSize) this.tileSize = options.tileSize
     if (options.tmsStyle) this.tmsStyle = options.tmsStyle
     if (options.srs) this.srs = options.srs
+    if (options.defaultColor) this.defaultColor = options.defaultColor
     // set maxPixelSize based upon inputs
     this.maxPixelSize = (1 << this.inputZoom) * this.tileSize
     // prep mercator projection
@@ -76,6 +79,7 @@ export default class ToS2 {
     // run through each tile
     for (const tile of tiles) {
       const { face, zoom, x, y } = tile
+      if (fs.existsSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x + '/' + y + '.png')) continue
       // sanity check
       if (zoom !== this.outputZoom) continue
       // get tile's ST-bounds
@@ -127,6 +131,9 @@ export default class ToS2 {
     const id = toID(this.inputZoom, tileX, tileY)
     // if we haven't pulled the image in yet do so now
     if (!this.inputImages[id]) {
+      if (!fs.existsSync(this.inputFolder + '/' + this.inputZoom + '/' + tileX + '/' + tileY + '.png')) {
+        return this.defaultColor
+      }
       this.inputImages[id] = PNG.sync.read(
         fs.readFileSync(this.inputFolder + '/' + this.inputZoom + '/' + tileX + '/' + tileY + '.png')
       )
