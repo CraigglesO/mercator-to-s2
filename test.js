@@ -1,11 +1,11 @@
 const ToST = require('./lib').default
 
 const toST = new ToST({
-  outputZoom: 6,
-  inputZoom: 8
+  outputZoom: 1,
+  inputZoom: 3
 })
 
-toST.convert()
+toST.buildTiles()
 
 
 
