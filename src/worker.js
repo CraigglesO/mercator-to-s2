@@ -91,7 +91,7 @@ class Worker {
 
   buildTile (face: Face, zoom: number, x: number, y: number) {
     if (fs.existsSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x + '/' + y + '.png')) {
-      return parentPort.postMessage({ status: 'ready' })
+      return parentPort.postMessage({ status: 'ready', built: true })
     }
     // sanity check
     if (zoom !== this.outputZoom) return parentPort.postMessage({ status: 'ready' })
@@ -179,14 +179,30 @@ class Worker {
   }
 
   saveImage (face, zoom, x, y, data) {
+    const noOutputFlag = this.outPNG === undefined
+    if (noOutputFlag) { // set defaults
+      this.outPNG = {
+        width: 512,
+        height: 512,
+        depth: 8,
+        interlace: false,
+        palette: false,
+        color: true,
+        alpha: true,
+        bpp: 4,
+        colorType: 6,
+        gamma: 0
+      }
+    }
     const buffer = Buffer.from(data)
     this.outPNG.data = buffer
 
     const outBuffer = PNG.sync.write(this.outPNG)
-    if (!fs.existsSync(this.outputFolder + '/' + face)) fs.mkdirSync(this.outputFolder + '/' + face)
-    if (!fs.existsSync(this.outputFolder + '/' + face + '/' + zoom)) fs.mkdirSync(this.outputFolder + '/' + face + '/' + zoom)
-    if (!fs.existsSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x)) fs.mkdirSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x)
+    if (!fs.existsSync(this.outputFolder + '/' + face)) try { fs.mkdirSync(this.outputFolder + '/' + face) } catch (err) {}
+    if (!fs.existsSync(this.outputFolder + '/' + face + '/' + zoom)) try { fs.mkdirSync(this.outputFolder + '/' + face + '/' + zoom) } catch (err) {}
+    if (!fs.existsSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x)) try { fs.mkdirSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x) } catch (err) {}
     fs.writeFileSync(this.outputFolder + '/' + face + '/' + zoom + '/' + x + '/' + y + '.png', outBuffer)
+    if (noOutputFlag) delete this.outputPNG
   }
 }
 

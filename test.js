@@ -1,9 +1,13 @@
 const ToST = require('./lib').default
 
 const toST = new ToST({
-  outputZoom: 1,
-  inputZoom: 3
+  outputZoom: 8,
+  inputZoom: 10,
+  inputFolder: '/home/craiggles/Documents/s2pool/images/Satellite',
+  outputFolder: '/home/craiggles/Documents/s2pool/s2-images/Satellite'
 })
+
+// '/home/craiggles/Documents/s2pool/images/Satellite'
 
 toST.buildTiles()
 
